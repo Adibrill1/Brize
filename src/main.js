@@ -4,11 +4,12 @@ import './styles.css';
 import { newStop, saveStop, deleteStop, listStops, db } from './db.js';
 import { createMap, renderStops } from './map.js';
 import { initPanel, openEditor, editingId, updateEditingCoords } from './panel.js';
-import { initBudget, updateBudgetChip } from './budget.js';
+import { updateBudgetChip } from './budget.js';
 import { exportBackup, importBackup } from './backup.js';
 import { syncToCalendar, queueEventDelete } from './calendar.js';
 import { draftOutreach } from './ai.js';
-import { getSetting } from './db.js';
+import { getSetting, setSetting } from './db.js';
+import { t, initI18n, setLang, currentLang } from './i18n.js';
 
 const state = {
   stops: [],
@@ -76,16 +77,16 @@ initPanel({
     const textarea = document.getElementById('draft-text');
     const btn = document.getElementById('draft-btn');
     btn.disabled = true;
-    btn.textContent = '✨ Drafting…';
+    btn.textContent = t('drafting');
     try {
       const text = await draftOutreach(stop);
       textarea.value = text;
       dialog.showModal();
     } catch (err) {
-      alert(`Draft failed: ${err.message}`);
+      alert(t('draft_failed', { msg: err.message }));
     } finally {
       btn.disabled = false;
-      btn.textContent = '✨ Draft outreach message';
+      btn.textContent = t('draft_btn');
     }
   },
 });
@@ -95,30 +96,71 @@ document.getElementById('draft-close').addEventListener('click', () => {
 });
 document.getElementById('draft-copy').addEventListener('click', async (e) => {
   await navigator.clipboard.writeText(document.getElementById('draft-text').value);
-  e.target.textContent = 'Copied!';
-  setTimeout(() => (e.target.textContent = 'Copy'), 1500);
+  e.target.textContent = t('copied');
+  setTimeout(() => (e.target.textContent = t('copy')), 1500);
 });
-
-initBudget();
 
 const calendarChip = document.getElementById('calendar-chip');
+let calendarConnected = false;
+
+function refreshCalendarChip() {
+  calendarChip.textContent = t(calendarConnected ? 'sync_calendar' : 'connect_calendar');
+}
+
 getSetting('calendarConnected', false).then((connected) => {
-  if (connected) calendarChip.textContent = 'Sync Calendar';
+  calendarConnected = connected;
+  refreshCalendarChip();
 });
+
 calendarChip.addEventListener('click', async () => {
-  const label = calendarChip.textContent;
   calendarChip.disabled = true;
-  calendarChip.textContent = 'Syncing…';
+  calendarChip.textContent = t('syncing');
   try {
     const { created, updated, removed } = await syncToCalendar();
-    calendarChip.textContent = 'Sync Calendar';
-    alert(`Calendar synced — ${created} created, ${updated} updated, ${removed} removed.`);
+    calendarConnected = true;
+    alert(t('calendar_synced', { c: created, u: updated, r: removed }));
   } catch (err) {
-    calendarChip.textContent = label;
-    alert(`Calendar sync failed: ${err.message}`);
+    alert(t('sync_failed', { msg: err.message }));
   } finally {
     calendarChip.disabled = false;
+    refreshCalendarChip();
   }
+});
+
+// ---------- settings ----------
+
+const settingsDialog = document.getElementById('settings-dialog');
+const settingsForm = document.getElementById('settings-form');
+
+async function openSettings() {
+  const f = settingsForm.elements;
+  f.lang.value = currentLang();
+  f.monthlyBudget.value = (await getSetting('monthlyBudget', 0)) || '';
+  f.aboutMe.value = await getSetting('aboutMe', '');
+  f.anthropicApiKey.value = '';
+  const hasKey = Boolean(await getSetting('anthropicApiKey', ''));
+  f.anthropicApiKey.placeholder = hasKey ? t('api_key_saved_ph') : 'sk-ant-…';
+  settingsDialog.showModal();
+}
+
+settingsForm.addEventListener('submit', async () => {
+  const f = settingsForm.elements;
+  await setSetting('monthlyBudget', Number(f.monthlyBudget.value) || 0);
+  await setSetting('aboutMe', f.aboutMe.value.trim());
+  const key = f.anthropicApiKey.value.trim();
+  if (key) await setSetting('anthropicApiKey', key);
+  await setLang(f.lang.value);
+  await updateBudgetChip();
+});
+
+document.getElementById('settings-chip').addEventListener('click', openSettings);
+document.getElementById('budget-chip').addEventListener('click', openSettings);
+document.getElementById('settings-cancel').addEventListener('click', () => settingsDialog.close());
+
+document.addEventListener('langchange', () => {
+  refreshCalendarChip();
+  updateBudgetChip();
+  render(); // refresh marker tooltips
 });
 
 document.getElementById('export-btn').addEventListener('click', exportBackup);
@@ -129,9 +171,9 @@ document.getElementById('import-input').addEventListener('change', async (e) => 
   try {
     const { added, updated, skipped } = await importBackup(file);
     await refresh();
-    alert(`Import done — ${added} added, ${updated} updated, ${skipped} unchanged.`);
+    alert(t('import_done', { a: added, u: updated, s: skipped }));
   } catch (err) {
-    alert(`Import failed: ${err.message}`);
+    alert(t('import_failed', { msg: err.message }));
   }
 });
 
@@ -157,6 +199,7 @@ async function refresh() {
 }
 
 db.open()
+  .then(initI18n)
   .then(refresh)
   .catch((err) => alert(`Local database failed to open: ${err.message}`));
 

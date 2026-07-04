@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getSetting, setSetting } from './db.js';
+import { t } from './i18n.js';
 
 /* The app is a static site with no backend, so the Anthropic API key lives
  * only in this device's IndexedDB and requests go straight from the browser
@@ -10,28 +11,12 @@ const MODEL = 'claude-opus-4-8';
 async function ensureApiKey() {
   let key = await getSetting('anthropicApiKey', '');
   if (!key) {
-    key = window.prompt(
-      'Paste your Anthropic API key (starts with "sk-ant-").\n' +
-        'It is stored only on this device and sent only to api.anthropic.com.',
-    );
+    key = window.prompt(t('key_prompt'));
     if (!key || !key.trim()) return null;
     key = key.trim();
     await setSetting('anthropicApiKey', key);
   }
   return key;
-}
-
-async function ensureAboutMe() {
-  let about = await getSetting('aboutMe', null);
-  if (about === null) {
-    about =
-      window.prompt(
-        'One-time setup: describe yourself in a sentence or two, for personalized host messages.\n' +
-          '(e.g. "Creative AI artist traveling Europe for two years in a Toyota Land Cruiser…")',
-      ) || '';
-    await setSetting('aboutMe', about);
-  }
-  return about;
 }
 
 export async function clearApiKey() {
@@ -41,7 +26,7 @@ export async function clearApiKey() {
 export async function draftOutreach(stop) {
   const apiKey = await ensureApiKey();
   if (!apiKey) throw new Error('no API key provided');
-  const aboutMe = await ensureAboutMe();
+  const aboutMe = await getSetting('aboutMe', '');
 
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
