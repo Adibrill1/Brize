@@ -28,6 +28,12 @@ Architecture rationale and roadmap: [`docs/ARCHITECTURE_REVIEW.md`](docs/ARCHITE
   (green / amber / red against a target you set — suggestions, never auto-booking).
 - JSON backup export, and import that *merges* (newer edit wins, nothing wiped).
 - Service worker: offline app shell + tile caching; persistent storage requested.
+- **Google Calendar push** (one-way): planned & booked stays with dates become
+  all-day events on your primary calendar. Sync is manual (one button), the app
+  only ever touches events it created (tagged with the stop id), and events are
+  removed when a stay is deleted or demoted back to idea. Calendar events are a
+  projection — edits made in Google Calendar are overwritten on the next sync;
+  the local database is always the source of truth.
 
 ## Install on your phone
 
@@ -54,7 +60,7 @@ No backend, no API keys required.
 
 ## Roadmap
 
-1. ~~Map + local DB + manual editing + backup~~ (this MVP)
-2. Google Calendar projection (one-way push, then guarded read-back with sync tokens)
+1. ~~Map + local DB + manual editing + backup~~ ✅
+2. Google Calendar projection — ~~one-way push~~ ✅, guarded read-back with sync tokens next
 3. Wishlist import (Google Takeout CSV → pins), LEZ / P+R overlay layers (GeoJSON)
 4. Offline region downloads (PMTiles extracts), outreach draft generation
