@@ -6,6 +6,8 @@ import { createMap, renderStops } from './map.js';
 import { initPanel, openEditor, editingId, updateEditingCoords } from './panel.js';
 import { initBudget, updateBudgetChip } from './budget.js';
 import { exportBackup, importBackup } from './backup.js';
+import { syncToCalendar, queueEventDelete } from './calendar.js';
+import { getSetting } from './db.js';
 
 const state = {
   stops: [],
@@ -58,7 +60,10 @@ initPanel({
   },
   async onDelete(stop) {
     state.draft = null;
-    if (!stop.isNew) await deleteStop(stop.id);
+    if (!stop.isNew) {
+      await queueEventDelete(stop);
+      await deleteStop(stop.id);
+    }
     await refresh();
   },
   async onCancel() {
@@ -68,6 +73,26 @@ initPanel({
 });
 
 initBudget();
+
+const calendarChip = document.getElementById('calendar-chip');
+getSetting('calendarConnected', false).then((connected) => {
+  if (connected) calendarChip.textContent = 'Sync Calendar';
+});
+calendarChip.addEventListener('click', async () => {
+  const label = calendarChip.textContent;
+  calendarChip.disabled = true;
+  calendarChip.textContent = 'Syncing…';
+  try {
+    const { created, updated, removed } = await syncToCalendar();
+    calendarChip.textContent = 'Sync Calendar';
+    alert(`Calendar synced — ${created} created, ${updated} updated, ${removed} removed.`);
+  } catch (err) {
+    calendarChip.textContent = label;
+    alert(`Calendar sync failed: ${err.message}`);
+  } finally {
+    calendarChip.disabled = false;
+  }
+});
 
 document.getElementById('export-btn').addEventListener('click', exportBackup);
 document.getElementById('import-input').addEventListener('change', async (e) => {
