@@ -38,6 +38,16 @@ export function initPanel(cbs) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && current) cancel();
   });
+  document.getElementById('draft-btn').addEventListener('click', () => {
+    if (!current) return;
+    // Use what's on screen right now, saved or not
+    const snapshot = { ...current };
+    for (const name of FIELDS) {
+      const input = f.elements[name];
+      snapshot[name] = input.type === 'number' ? (input.value === '' ? null : Number(input.value)) : input.value;
+    }
+    callbacks.onDraft(snapshot);
+  });
 }
 
 function cancel() {

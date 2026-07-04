@@ -7,6 +7,7 @@ import { initPanel, openEditor, editingId, updateEditingCoords } from './panel.j
 import { initBudget, updateBudgetChip } from './budget.js';
 import { exportBackup, importBackup } from './backup.js';
 import { syncToCalendar, queueEventDelete } from './calendar.js';
+import { draftOutreach } from './ai.js';
 import { getSetting } from './db.js';
 
 const state = {
@@ -70,6 +71,32 @@ initPanel({
     state.draft = null;
     render();
   },
+  async onDraft(stop) {
+    const dialog = document.getElementById('draft-dialog');
+    const textarea = document.getElementById('draft-text');
+    const btn = document.getElementById('draft-btn');
+    btn.disabled = true;
+    btn.textContent = '✨ Drafting…';
+    try {
+      const text = await draftOutreach(stop);
+      textarea.value = text;
+      dialog.showModal();
+    } catch (err) {
+      alert(`Draft failed: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✨ Draft outreach message';
+    }
+  },
+});
+
+document.getElementById('draft-close').addEventListener('click', () => {
+  document.getElementById('draft-dialog').close();
+});
+document.getElementById('draft-copy').addEventListener('click', async (e) => {
+  await navigator.clipboard.writeText(document.getElementById('draft-text').value);
+  e.target.textContent = 'Copied!';
+  setTimeout(() => (e.target.textContent = 'Copy'), 1500);
 });
 
 initBudget();

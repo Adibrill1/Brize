@@ -96,6 +96,10 @@
 
       <p class="coords">📍 <span id="editor-coords"></span> <small>(drag the pin to move)</small></p>
 
+      <button type="button" id="draft-btn" class="ai-btn stay-only" title="Generate a personalized message to the host — you review and send it yourself">
+        ✨ Draft outreach message
+      </button>
+
       <footer>
         <button type="button" id="editor-delete" class="danger">Delete</button>
         <span class="spacer"></span>
@@ -104,6 +108,17 @@
       </footer>
     </form>
   </aside>
+
+  <dialog id="draft-dialog">
+    <h2>Outreach draft</h2>
+    <p class="draft-hint">Edit freely — this is a starting point, you send it yourself.</p>
+    <textarea id="draft-text" rows="10"></textarea>
+    <footer>
+      <button id="draft-copy" class="primary">Copy</button>
+      <span class="spacer"></span>
+      <button id="draft-close">Close</button>
+    </footer>
+  </dialog>
 
   <script type="module" src="./src/main.js"></script>
 </body>
