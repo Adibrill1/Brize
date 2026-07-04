@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 const panel = () => document.getElementById('editor');
 const form = () => document.getElementById('editor-form');
 
@@ -30,7 +32,7 @@ export function initPanel(cbs) {
   document.getElementById('editor-cancel').addEventListener('click', cancel);
   document.getElementById('editor-delete').addEventListener('click', () => {
     if (!current) return;
-    if (!current.isNew && !confirm(`Delete "${current.name || 'this stop'}"?`)) return;
+    if (!current.isNew && !confirm(t('confirm_delete', { name: current.name || t('this_stop') }))) return;
     const stop = current;
     closePanel();
     callbacks.onDelete(stop);
@@ -60,7 +62,7 @@ export function openEditor(stop, { isNew = false } = {}) {
   current = stop;
   current.isNew = isNew;
   const f = form();
-  document.getElementById('editor-title').textContent = isNew ? 'New stop' : 'Edit stop';
+  document.getElementById('editor-title').textContent = t(isNew ? 'new_stop' : 'edit_stop');
   document.getElementById('editor-delete').hidden = isNew;
   for (const name of FIELDS) {
     f.elements[name].value = stop[name] ?? '';

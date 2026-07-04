@@ -1,5 +1,6 @@
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
+import { t } from './i18n.js';
 
 const STATUS_COLORS = {
   idea: '#8b93a7',
@@ -81,7 +82,7 @@ export function renderStops(map, stops, { onSelect, onMove }) {
     const el = marker.getElement();
     el.textContent = TYPE_ICONS[stop.type] || '★';
     el.style.setProperty('--marker-color', STATUS_COLORS[stop.status] || STATUS_COLORS.idea);
-    el.title = stop.name || 'Unnamed stop';
+    el.title = stop.name || t('unnamed');
     el.classList.toggle('draft', Boolean(stop.isDraft));
   }
 }

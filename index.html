@@ -12,25 +12,24 @@
   <div id="map"></div>
 
   <div class="toolbar" role="toolbar" aria-label="App actions">
-    <button id="budget-chip" class="chip" title="Monthly stay budget — click to set target">
-      Budget: —
-    </button>
-    <button id="calendar-chip" class="chip" title="Push planned & booked stays to Google Calendar">Connect Calendar</button>
-    <button id="export-btn" class="chip" title="Download a JSON backup of all data">Export</button>
-    <label class="chip" title="Restore / merge from a JSON backup">
-      Import<input id="import-input" type="file" accept="application/json" hidden />
+    <button id="budget-chip" class="chip">Budget: —</button>
+    <button id="calendar-chip" class="chip" data-i18n="connect_calendar">Connect Calendar</button>
+    <button id="export-btn" class="chip" data-i18n="export">Export</button>
+    <label class="chip">
+      <span data-i18n="import">Import</span><input id="import-input" type="file" accept="application/json" hidden />
     </label>
+    <button id="settings-chip" class="chip" data-i18n-title="settings_title" title="Settings">⚙️</button>
   </div>
 
   <div class="filters" role="group" aria-label="Filter stops by status">
-    <button class="chip filter-chip active" data-status="">All</button>
-    <button class="chip filter-chip" data-status="idea">Idea</button>
-    <button class="chip filter-chip" data-status="planned">Planned</button>
-    <button class="chip filter-chip" data-status="booked">Booked</button>
-    <button class="chip filter-chip" data-status="done">Done</button>
+    <button class="chip filter-chip active" data-status="" data-i18n="all">All</button>
+    <button class="chip filter-chip" data-status="idea" data-i18n="idea">Idea</button>
+    <button class="chip filter-chip" data-status="planned" data-i18n="planned">Planned</button>
+    <button class="chip filter-chip" data-status="booked" data-i18n="booked">Booked</button>
+    <button class="chip filter-chip" data-status="done" data-i18n="done">Done</button>
   </div>
 
-  <p id="empty-hint" class="empty-hint" hidden>Tap anywhere on the map to add your first stop</p>
+  <p id="empty-hint" class="empty-hint" data-i18n="empty_hint" hidden>Tap anywhere on the map to add your first stop</p>
 
   <aside id="editor" class="editor" hidden aria-label="Stop editor">
     <form id="editor-form">
@@ -39,85 +38,117 @@
         <button type="button" id="editor-close" class="icon-btn" aria-label="Close">✕</button>
       </header>
 
-      <label>Name
-        <input name="name" type="text" placeholder="e.g. House sit near Lyon" autocomplete="off" />
+      <label><span data-i18n="name">Name</span>
+        <input name="name" type="text" data-i18n-ph="name_ph" autocomplete="off" />
       </label>
 
       <div class="row">
-        <label>Type
+        <label><span data-i18n="type">Type</span>
           <select name="type">
-            <option value="stay">Stay</option>
-            <option value="poi">Place / POI</option>
-            <option value="parking">Parking</option>
+            <option value="stay" data-i18n="stay">Stay</option>
+            <option value="poi" data-i18n="poi">Place / POI</option>
+            <option value="parking" data-i18n="parking">Parking</option>
           </select>
         </label>
-        <label>Status
+        <label><span data-i18n="status">Status</span>
           <select name="status">
-            <option value="idea">Idea</option>
-            <option value="planned">Planned</option>
-            <option value="booked">Booked</option>
-            <option value="done">Done</option>
+            <option value="idea" data-i18n="idea">Idea</option>
+            <option value="planned" data-i18n="planned">Planned</option>
+            <option value="booked" data-i18n="booked">Booked</option>
+            <option value="done" data-i18n="done">Done</option>
           </select>
         </label>
       </div>
 
       <div class="row stay-only">
-        <label>Stay type
+        <label><span data-i18n="stay_type">Stay type</span>
           <select name="stayType">
-            <option value="housesit">House sit</option>
-            <option value="airbnb">Airbnb</option>
-            <option value="camping">Camping</option>
-            <option value="glamping">Glamping</option>
-            <option value="friends">Friends</option>
-            <option value="other">Other</option>
+            <option value="housesit" data-i18n="housesit">House sit</option>
+            <option value="airbnb" data-i18n="airbnb">Airbnb</option>
+            <option value="camping" data-i18n="camping">Camping</option>
+            <option value="glamping" data-i18n="glamping">Glamping</option>
+            <option value="friends" data-i18n="friends">Friends</option>
+            <option value="other" data-i18n="other">Other</option>
           </select>
         </label>
-        <label>Cost / night (€)
+        <label><span data-i18n="cost_night">Cost / night (€)</span>
           <input name="costPerNight" type="number" min="0" step="0.01" placeholder="0" />
         </label>
       </div>
 
       <div class="row">
-        <label>Arrival
+        <label><span data-i18n="arrival">Arrival</span>
           <input name="arrival" type="date" />
         </label>
-        <label>Departure
+        <label><span data-i18n="departure">Departure</span>
           <input name="departure" type="date" />
         </label>
       </div>
 
-      <label>Parking notes
-        <input name="parkingNotes" type="text" placeholder="Land Cruiser access, height limits…" autocomplete="off" />
+      <label><span data-i18n="parking_notes">Parking notes</span>
+        <input name="parkingNotes" type="text" data-i18n-ph="parking_ph" autocomplete="off" />
       </label>
 
-      <label>Notes
-        <textarea name="notes" rows="3" placeholder="Links, contacts, anything"></textarea>
+      <label><span data-i18n="notes">Notes</span>
+        <textarea name="notes" rows="3" data-i18n-ph="notes_ph"></textarea>
       </label>
 
-      <p class="coords">📍 <span id="editor-coords"></span> <small>(drag the pin to move)</small></p>
+      <p class="coords">📍 <span id="editor-coords"></span> <small data-i18n="drag_pin">(drag the pin to move)</small></p>
 
-      <button type="button" id="draft-btn" class="ai-btn stay-only" title="Generate a personalized message to the host — you review and send it yourself">
+      <button type="button" id="draft-btn" class="ai-btn stay-only" data-i18n="draft_btn">
         ✨ Draft outreach message
       </button>
 
       <footer>
-        <button type="button" id="editor-delete" class="danger">Delete</button>
+        <button type="button" id="editor-delete" class="danger" data-i18n="delete">Delete</button>
         <span class="spacer"></span>
-        <button type="button" id="editor-cancel">Cancel</button>
-        <button type="submit" class="primary">Save</button>
+        <button type="button" id="editor-cancel" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="primary" data-i18n="save">Save</button>
       </footer>
     </form>
   </aside>
 
   <dialog id="draft-dialog">
-    <h2>Outreach draft</h2>
-    <p class="draft-hint">Edit freely — this is a starting point, you send it yourself.</p>
+    <h2 data-i18n="draft_title">Outreach draft</h2>
+    <p class="dialog-hint" data-i18n="draft_hint">Edit freely — this is a starting point, you send it yourself.</p>
     <textarea id="draft-text" rows="10"></textarea>
     <footer>
-      <button id="draft-copy" class="primary">Copy</button>
+      <button id="draft-copy" class="primary" data-i18n="copy">Copy</button>
       <span class="spacer"></span>
-      <button id="draft-close">Close</button>
+      <button id="draft-close" data-i18n="close">Close</button>
     </footer>
+  </dialog>
+
+  <dialog id="settings-dialog">
+    <form id="settings-form" method="dialog">
+      <h2 data-i18n="settings_title">Settings</h2>
+
+      <label><span data-i18n="language">Language / שפה</span>
+        <select name="lang">
+          <option value="en">English</option>
+          <option value="he">עברית</option>
+        </select>
+      </label>
+
+      <label><span data-i18n="monthly_budget">Monthly stay budget target (€)</span>
+        <input name="monthlyBudget" type="number" min="0" step="1" placeholder="0" />
+      </label>
+
+      <label><span data-i18n="about_me">About me (used in outreach drafts — write in English)</span>
+        <textarea name="aboutMe" rows="3"></textarea>
+      </label>
+
+      <label><span data-i18n="api_key">Anthropic API key</span>
+        <input name="anthropicApiKey" type="password" placeholder="sk-ant-…" autocomplete="off" />
+      </label>
+      <p class="dialog-hint" data-i18n="api_key_hint">Stored only on this device, sent only to api.anthropic.com.</p>
+
+      <footer>
+        <button type="button" id="settings-cancel" data-i18n="cancel">Cancel</button>
+        <span class="spacer"></span>
+        <button type="submit" class="primary" data-i18n="save">Save</button>
+      </footer>
+    </form>
   </dialog>
 
   <script type="module" src="./src/main.js"></script>

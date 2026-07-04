@@ -1,4 +1,5 @@
-import { getSetting, setSetting, listStops } from './db.js';
+import { getSetting, listStops } from './db.js';
+import { t } from './i18n.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -27,22 +28,8 @@ export async function updateBudgetChip() {
   }
 
   chip.classList.remove('ok', 'warn', 'over');
-  if (!target) {
-    chip.textContent = `Budget: €${Math.round(total)} / set target`;
-  } else {
-    chip.textContent = `Budget: €${Math.round(total)} / €${target}`;
+  chip.textContent = `${t('budget')}: €${Math.round(total)} / ${target ? `€${target}` : t('set_target')}`;
+  if (target) {
     chip.classList.add(total <= target * 0.85 ? 'ok' : total <= target ? 'warn' : 'over');
   }
-}
-
-export function initBudget() {
-  document.getElementById('budget-chip').addEventListener('click', async () => {
-    const current = await getSetting('monthlyBudget', 0);
-    const raw = prompt('Monthly stay budget target (€):', current || '');
-    if (raw === null) return;
-    const value = Number(raw);
-    if (Number.isNaN(value) || value < 0) return alert('Please enter a number.');
-    await setSetting('monthlyBudget', value);
-    await updateBudgetChip();
-  });
 }
