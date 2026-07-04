@@ -1,5 +1,7 @@
 # Brize — Nomad Dashboard
 
+**Live app:** https://adibrill1.github.io/Brize/
+
 Map-first PWA command center for a long-term European overland journey.
 The map is the interface: stops are created, dragged and edited directly on it,
 and every automated decision stays manually overridable.
@@ -26,6 +28,18 @@ Architecture rationale and roadmap: [`docs/ARCHITECTURE_REVIEW.md`](docs/ARCHITE
   (green / amber / red against a target you set — suggestions, never auto-booking).
 - JSON backup export, and import that *merges* (newer edit wins, nothing wiped).
 - Service worker: offline app shell + tile caching; persistent storage requested.
+
+## Install on your phone
+
+Open the live app URL in Chrome (Android) or Safari (iOS), then:
+
+- **Android**: menu ⋮ → *Add to Home screen* → *Install*
+- **iOS**: share button → *Add to Home Screen*
+
+Installing (rather than browsing) matters: it gives the app its own icon,
+full-screen mode, and much stronger protection against the browser evicting
+your local data. All data stays on the device — use *Export* regularly to
+keep a JSON backup.
 
 ## Development
 
