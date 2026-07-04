@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101318" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <title>Brize — Nomad Dashboard</title>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="toolbar" role="toolbar" aria-label="App actions">
+    <button id="budget-chip" class="chip" title="Monthly stay budget — click to set target">
+      Budget: —
+    </button>
+    <button id="export-btn" class="chip" title="Download a JSON backup of all data">Export</button>
+    <label class="chip" title="Restore / merge from a JSON backup">
+      Import<input id="import-input" type="file" accept="application/json" hidden />
+    </label>
+  </div>
+
+  <div class="filters" role="group" aria-label="Filter stops by status">
+    <button class="chip filter-chip active" data-status="">All</button>
+    <button class="chip filter-chip" data-status="idea">Idea</button>
+    <button class="chip filter-chip" data-status="planned">Planned</button>
+    <button class="chip filter-chip" data-status="booked">Booked</button>
+    <button class="chip filter-chip" data-status="done">Done</button>
+  </div>
+
+  <p id="empty-hint" class="empty-hint" hidden>Tap anywhere on the map to add your first stop</p>
+
+  <aside id="editor" class="editor" hidden aria-label="Stop editor">
+    <form id="editor-form">
+      <header>
+        <h2 id="editor-title">Edit stop</h2>
+        <button type="button" id="editor-close" class="icon-btn" aria-label="Close">✕</button>
+      </header>
+
+      <label>Name
+        <input name="name" type="text" placeholder="e.g. House sit near Lyon" autocomplete="off" />
+      </label>
+
+      <div class="row">
+        <label>Type
+          <select name="type">
+            <option value="stay">Stay</option>
+            <option value="poi">Place / POI</option>
+            <option value="parking">Parking</option>
+          </select>
+        </label>
+        <label>Status
+          <select name="status">
+            <option value="idea">Idea</option>
+            <option value="planned">Planned</option>
+            <option value="booked">Booked</option>
+            <option value="done">Done</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row stay-only">
+        <label>Stay type
+          <select name="stayType">
+            <option value="housesit">House sit</option>
+            <option value="airbnb">Airbnb</option>
+            <option value="camping">Camping</option>
+            <option value="glamping">Glamping</option>
+            <option value="friends">Friends</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Cost / night (€)
+          <input name="costPerNight" type="number" min="0" step="0.01" placeholder="0" />
+        </label>
+      </div>
+
+      <div class="row">
+        <label>Arrival
+          <input name="arrival" type="date" />
+        </label>
+        <label>Departure
+          <input name="departure" type="date" />
+        </label>
+      </div>
+
+      <label>Parking notes
+        <input name="parkingNotes" type="text" placeholder="Land Cruiser access, height limits…" autocomplete="off" />
+      </label>
+
+      <label>Notes
+        <textarea name="notes" rows="3" placeholder="Links, contacts, anything"></textarea>
+      </label>
+
+      <p class="coords">📍 <span id="editor-coords"></span> <small>(drag the pin to move)</small></p>
+
+      <footer>
+        <button type="button" id="editor-delete" class="danger">Delete</button>
+        <span class="spacer"></span>
+        <button type="button" id="editor-cancel">Cancel</button>
+        <button type="submit" class="primary">Save</button>
+      </footer>
+    </form>
+  </aside>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

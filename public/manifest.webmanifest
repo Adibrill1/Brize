@@ -1,0 +1,19 @@
+{
+  "name": "Brize — Nomad Dashboard",
+  "short_name": "Brize",
+  "description": "Map-first command center for long-term overland travel",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101318",
+  "theme_color": "#101318",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
