@@ -28,6 +28,12 @@ Architecture rationale and roadmap: [`docs/ARCHITECTURE_REVIEW.md`](docs/ARCHITE
   (green / amber / red against a target you set — suggestions, never auto-booking).
 - JSON backup export, and import that *merges* (newer edit wins, nothing wiped).
 - Service worker: offline app shell + tile caching; persistent storage requested.
+- **AI outreach drafts**: a "Draft outreach message" button on stays generates a
+  personalized host message via the Claude API (`claude-opus-4-8`). Semi-automated
+  by design — you review, edit, and send it yourself. Requires your own Anthropic
+  API key, which is stored **only on this device** (IndexedDB) and sent only to
+  `api.anthropic.com` — never committed or synced. Typical cost is around a cent
+  per draft.
 - **Google Calendar push** (one-way): planned & booked stays with dates become
   all-day events on your primary calendar. Sync is manual (one button), the app
   only ever touches events it created (tagged with the stop id), and events are
