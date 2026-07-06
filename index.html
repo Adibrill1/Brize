@@ -6,98 +6,35 @@
   <meta name="theme-color" content="#101318" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
-  <title>Brize — Nomad Dashboard</title>
+  <title>Brize</title>
 </head>
 <body>
   <div id="map"></div>
 
+  <!-- Capabilities append their chips here; only settings is built in. -->
   <div class="toolbar" role="toolbar" aria-label="App actions">
-    <button id="budget-chip" class="chip">Budget: —</button>
-    <button id="calendar-chip" class="chip" data-i18n="connect_calendar">Connect Calendar</button>
-    <button id="export-btn" class="chip" data-i18n="export">Export</button>
-    <label class="chip">
-      <span data-i18n="import">Import</span><input id="import-input" type="file" accept="application/json" hidden />
-    </label>
     <button id="settings-chip" class="chip" data-i18n-title="settings_title" title="Settings">⚙️</button>
   </div>
 
-  <div class="filters" role="group" aria-label="Filter stops by status">
-    <button class="chip filter-chip active" data-status="" data-i18n="all">All</button>
-    <button class="chip filter-chip" data-status="idea" data-i18n="idea">Idea</button>
-    <button class="chip filter-chip" data-status="planned" data-i18n="planned">Planned</button>
-    <button class="chip filter-chip" data-status="booked" data-i18n="booked">Booked</button>
-    <button class="chip filter-chip" data-status="done" data-i18n="done">Done</button>
-  </div>
+  <!-- Status filter chips, generated from the workspace configuration. -->
+  <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
 
-  <p id="empty-hint" class="empty-hint" data-i18n="empty_hint" hidden>Tap anywhere on the map to add your first stop</p>
+  <p id="empty-hint" class="empty-hint" data-i18n="empty_hint" hidden>Tap anywhere on the map to add your first item</p>
 
-  <aside id="editor" class="editor" hidden aria-label="Stop editor">
+  <!-- Schema-driven entity editor: fields are generated from the active
+       workspace's entity type configuration. -->
+  <aside id="editor" class="editor" hidden aria-label="Entity editor">
     <form id="editor-form">
       <header>
-        <h2 id="editor-title">Edit stop</h2>
+        <h2 id="editor-title">Edit</h2>
         <button type="button" id="editor-close" class="icon-btn" aria-label="Close">✕</button>
       </header>
 
-      <label><span data-i18n="name">Name</span>
-        <input name="name" type="text" data-i18n-ph="name_ph" autocomplete="off" />
-      </label>
+      <div id="editor-fields"></div>
 
-      <div class="row">
-        <label><span data-i18n="type">Type</span>
-          <select name="type">
-            <option value="stay" data-i18n="stay">Stay</option>
-            <option value="poi" data-i18n="poi">Place / POI</option>
-            <option value="parking" data-i18n="parking">Parking</option>
-          </select>
-        </label>
-        <label><span data-i18n="status">Status</span>
-          <select name="status">
-            <option value="idea" data-i18n="idea">Idea</option>
-            <option value="planned" data-i18n="planned">Planned</option>
-            <option value="booked" data-i18n="booked">Booked</option>
-            <option value="done" data-i18n="done">Done</option>
-          </select>
-        </label>
-      </div>
+      <p class="coords" id="editor-coords-row" hidden>📍 <span id="editor-coords"></span> <small data-i18n="drag_pin">(drag the pin to move)</small></p>
 
-      <div class="row stay-only">
-        <label><span data-i18n="stay_type">Stay type</span>
-          <select name="stayType">
-            <option value="housesit" data-i18n="housesit">House sit</option>
-            <option value="airbnb" data-i18n="airbnb">Airbnb</option>
-            <option value="camping" data-i18n="camping">Camping</option>
-            <option value="glamping" data-i18n="glamping">Glamping</option>
-            <option value="friends" data-i18n="friends">Friends</option>
-            <option value="other" data-i18n="other">Other</option>
-          </select>
-        </label>
-        <label><span data-i18n="cost_night">Cost / night (€)</span>
-          <input name="costPerNight" type="number" min="0" step="0.01" placeholder="0" />
-        </label>
-      </div>
-
-      <div class="row">
-        <label><span data-i18n="arrival">Arrival</span>
-          <input name="arrival" type="date" />
-        </label>
-        <label><span data-i18n="departure">Departure</span>
-          <input name="departure" type="date" />
-        </label>
-      </div>
-
-      <label><span data-i18n="parking_notes">Parking notes</span>
-        <input name="parkingNotes" type="text" data-i18n-ph="parking_ph" autocomplete="off" />
-      </label>
-
-      <label><span data-i18n="notes">Notes</span>
-        <textarea name="notes" rows="3" data-i18n-ph="notes_ph"></textarea>
-      </label>
-
-      <p class="coords">📍 <span id="editor-coords"></span> <small data-i18n="drag_pin">(drag the pin to move)</small></p>
-
-      <button type="button" id="draft-btn" class="ai-btn stay-only" data-i18n="draft_btn">
-        ✨ Draft outreach message
-      </button>
+      <div id="editor-actions"></div>
 
       <footer>
         <button type="button" id="editor-delete" class="danger" data-i18n="delete">Delete</button>
@@ -109,7 +46,7 @@
   </aside>
 
   <dialog id="draft-dialog">
-    <h2 data-i18n="draft_title">Outreach draft</h2>
+    <h2 id="draft-title" data-i18n="draft_title">Draft</h2>
     <p class="dialog-hint" data-i18n="draft_hint">Edit freely — this is a starting point, you send it yourself.</p>
     <textarea id="draft-text" rows="10"></textarea>
     <footer>
@@ -117,6 +54,25 @@
       <span class="spacer"></span>
       <button id="draft-close" data-i18n="close">Close</button>
     </footer>
+  </dialog>
+
+  <dialog id="workspace-dialog">
+    <h2 data-i18n="workspaces">Workspaces</h2>
+    <div id="workspace-list"></div>
+    <form id="workspace-form">
+      <h2 data-i18n="new_workspace">New workspace</h2>
+      <label><span data-i18n="workspace_name">Workspace name</span>
+        <input name="wsname" type="text" data-i18n-ph="workspace_name_ph" autocomplete="off" required />
+      </label>
+      <label><span data-i18n="template">Template</span>
+        <select name="template"></select>
+      </label>
+      <footer>
+        <button type="button" id="workspace-close" data-i18n="close">Close</button>
+        <span class="spacer"></span>
+        <button type="submit" class="primary" data-i18n="create">Create</button>
+      </footer>
+    </form>
   </dialog>
 
   <dialog id="settings-dialog">
@@ -130,11 +86,11 @@
         </select>
       </label>
 
-      <label><span data-i18n="monthly_budget">Monthly stay budget target (€)</span>
+      <label><span data-i18n="monthly_budget">Monthly budget target</span>
         <input name="monthlyBudget" type="number" min="0" step="1" placeholder="0" />
       </label>
 
-      <label><span data-i18n="about_me">About me (used in outreach drafts — write in English)</span>
+      <label><span data-i18n="about_me">About me (context for AI drafts — write in English)</span>
         <textarea name="aboutMe" rows="3"></textarea>
       </label>
 

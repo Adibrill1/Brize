@@ -263,7 +263,50 @@ body {
   cursor: wait;
 }
 
-/* ---------- outreach draft dialog ---------- */
+/* ---------- workspace switcher ---------- */
+
+#workspace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 16px;
+}
+
+.workspace-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.workspace-open {
+  flex: 1;
+  text-align: start;
+  appearance: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.workspace-open.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.icon-btn.danger {
+  color: var(--over);
+}
+
+#workspace-form h2 {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ---------- draft dialog ---------- */
 
 dialog {
   background: var(--surface);

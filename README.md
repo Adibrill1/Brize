@@ -1,29 +1,48 @@
-# Brize — Nomad Dashboard
+# Brize
 
 **Live app:** https://adibrill1.github.io/Brize/
 
-Map-first PWA command center for a long-term European overland journey.
-The map is the interface: stops are created, dragged and edited directly on it,
-and every automated decision stays manually overridable.
+Brize is a local-first platform where every user owns independent worlds:
+each **workspace** is a self-contained universe with its own entity types,
+enabled capability modules, views, AI policy and settings — all configuration,
+not code. **Travel is the first application** shipped on the platform, as the
+Travel workspace template (map-first trip planning with stays, POIs and
+parking).
 
-Architecture rationale and roadmap: [`docs/ARCHITECTURE_REVIEW.md`](docs/ARCHITECTURE_REVIEW.md).
+Platform design: [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md).
+Original local-first rationale: [`docs/ARCHITECTURE_REVIEW.md`](docs/ARCHITECTURE_REVIEW.md).
 
 ## Core principles
 
+- **Workspace first** — everything belongs to a workspace; the app always
+  operates inside one active workspace, and unlimited independent workspaces
+  coexist on one device.
+- **Domain agnostic** — the engine knows nothing about travel (or any domain).
+  Entity types, statuses, fields and AI prompts come from workspace templates
+  and remain user-configurable.
+- **Modular capabilities** — map, calendar, budget, AI and backup are
+  self-registering modules mounted per workspace configuration, driven by
+  field bindings that entity types declare.
 - **Local-first** — IndexedDB (via Dexie) is the *single source of truth*.
-  Google Calendar, Sheets and any automation are projections of it, never peer writers.
-- **Manual override everywhere** — every field of every stop is editable on the map.
-- **Offline by default** — installed PWA; app shell and browsed map tiles are cached,
-  data lives on-device, with JSON export/import as backup and merge.
+  Every view and external sync (Google Calendar…) is a projection of it,
+  never a peer writer.
+- **AI proposes, users approve** — AI never owns state; structured changes go
+  through a proposal + approval flow, and every applied change is reversible
+  via the append-only event log.
+- **Offline by default** — installed PWA; app shell and browsed map tiles are
+  cached, data lives on-device, with JSON export/import as backup and merge.
 
-## Current features (MVP)
+## Travel template features
 
 - Full-screen MapLibre map (OSM raster tiles, `pmtiles://` protocol pre-registered
   for offline vector region files later).
-- Tap the map to add a stop; drag pins to move; tap to edit.
-- Stop model: type (stay / POI / parking), stay type (house sit, Airbnb, camping,
-  glamping, friends), status (idea → planned → booked → done), dates, cost per
-  night, parking notes for the Land Cruiser, free notes.
+- Tap the map to add an item; drag pins to move; tap to edit — the editor form
+  is generated from the workspace's entity type schema.
+- Travel entity types: stay / POI / parking, stay type (house sit, Airbnb,
+  camping, glamping, friends), status (idea → planned → booked → done), dates,
+  cost per night, parking notes, free notes.
+- Workspace switcher: create additional independent workspaces from templates
+  (Travel, Blank) and jump between them; JSON export/import per workspace.
 - Status filter chips and a monthly **budget guardrail** chip
   (green / amber / red against a target you set — suggestions, never auto-booking).
 - JSON backup export, and import that *merges* (newer edit wins, nothing wiped).
@@ -67,6 +86,10 @@ No backend, no API keys required.
 ## Roadmap
 
 1. ~~Map + local DB + manual editing + backup~~ ✅
-2. Google Calendar projection — ~~one-way push~~ ✅, guarded read-back with sync tokens next
-3. Wishlist import (Google Takeout CSV → pins), LEZ / P+R overlay layers (GeoJSON)
-4. Offline region downloads (PMTiles extracts), outreach draft generation
+2. ~~Workspace-first platform core: generic entities, capability modules,
+   templates, event log, AI proposal flow~~ ✅
+3. Google Calendar projection — ~~one-way push~~ ✅, guarded read-back with sync tokens next
+4. More built-in views (calendar grid, kanban, timeline) as pure projections
+5. Wishlist import (Google Takeout CSV → pins), LEZ / P+R overlay layers (GeoJSON)
+6. Offline region downloads (PMTiles extracts); event-log-based device sync
+7. Collaboration: turn `workspace.members` into real users with roles

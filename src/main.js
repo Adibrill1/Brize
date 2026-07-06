@@ -1,131 +1,90 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles.css';
 
-import { newStop, saveStop, deleteStop, listStops, db } from './db.js';
-import { createMap, renderStops } from './map.js';
-import { initPanel, openEditor, editingId, updateEditingCoords } from './panel.js';
-import { updateBudgetChip } from './budget.js';
-import { exportBackup, importBackup } from './backup.js';
-import { syncToCalendar, queueEventDelete } from './calendar.js';
-import { draftOutreach } from './ai.js';
-import { getSetting, setSetting } from './db.js';
+/* The shell. It boots the platform core, loads the active workspace and
+ * mounts whatever capabilities that workspace's configuration enables. It
+ * knows nothing about travel — or any other domain. */
+
+// Capabilities register themselves on import; the workspace config decides
+// which of them actually mount.
+import './modules/map.js';
+import './modules/calendar.js';
+import './modules/budget.js';
+import './modules/backup.js';
+import './modules/ai.js';
+
+import { db } from './core/db.js';
+import { getActiveWorkspace, statusesOf, entityTypeOf } from './core/workspaces.js';
+import { newEntity, saveEntity, deleteEntity, listEntities } from './core/entities.js';
+import { enabledCapabilities } from './core/registry.js';
+import { getSetting, setSetting, getWorkspaceSetting, setWorkspaceSetting } from './core/settings.js';
+import { initPanel, openEditor, editingId, updateEditingFields, registerEditorAction } from './ui/panel.js';
+import { initWorkspaceUI } from './ui/workspaces.js';
 import { t, initI18n, setLang, currentLang } from './i18n.js';
 
 const state = {
-  stops: [],
-  draft: null, // unsaved new stop, shown as a pin but not yet in the DB
+  entities: [],
+  draft: null, // unsaved new entity, shown as a pin but not yet in the DB
   filter: '', // '' = all statuses
 };
 
-const map = createMap('map', {
-  onMapClick(lngLat) {
-    if (state.draft) return; // finish the current new stop first
-    if (editingId()) return; // a click while editing just closes nothing — ignore
-    state.draft = { ...newStop(lngLat), isDraft: true };
-    render();
-    openEditor(state.draft, { isNew: true });
-  },
-});
+let ws = null;
+let caps = [];
 
-const markerHandlers = {
-  onSelect(id) {
-    if (state.draft && id === state.draft.id) return;
-    if (editingId()) return;
-    const stop = state.stops.find((s) => s.id === id);
-    if (stop) openEditor({ ...stop });
-  },
-  onMove(id, lngLat) {
-    if (editingId() === id || (state.draft && state.draft.id === id)) {
-      updateEditingCoords(lngLat);
-      if (state.draft && state.draft.id === id) {
-        state.draft.lat = lngLat.lat;
-        state.draft.lng = lngLat.lng;
-      }
-      return;
-    }
-    const stop = state.stops.find((s) => s.id === id);
-    if (stop) {
-      stop.lat = lngLat.lat;
-      stop.lng = lngLat.lng;
-      saveStop(stop).then(refresh);
-    }
-  },
-};
+// ---------- shell actions exposed to capabilities ----------
 
-initPanel({
-  async onSave(stop) {
-    delete stop.isNew;
-    delete stop.isDraft;
-    state.draft = null;
-    await saveStop(stop);
-    await refresh();
-  },
-  async onDelete(stop) {
-    state.draft = null;
-    if (!stop.isNew) {
-      await queueEventDelete(stop);
-      await deleteStop(stop.id);
-    }
-    await refresh();
-  },
-  async onCancel() {
-    state.draft = null;
-    render();
-  },
-  async onDraft(stop) {
-    const dialog = document.getElementById('draft-dialog');
-    const textarea = document.getElementById('draft-text');
-    const btn = document.getElementById('draft-btn');
-    btn.disabled = true;
-    btn.textContent = t('drafting');
-    try {
-      const text = await draftOutreach(stop);
-      textarea.value = text;
-      dialog.showModal();
-    } catch (err) {
-      alert(t('draft_failed', { msg: err.message }));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = t('draft_btn');
-    }
-  },
-});
-
-document.getElementById('draft-close').addEventListener('click', () => {
-  document.getElementById('draft-dialog').close();
-});
-document.getElementById('draft-copy').addEventListener('click', async (e) => {
-  await navigator.clipboard.writeText(document.getElementById('draft-text').value);
-  e.target.textContent = t('copied');
-  setTimeout(() => (e.target.textContent = t('copy')), 1500);
-});
-
-const calendarChip = document.getElementById('calendar-chip');
-let calendarConnected = false;
-
-function refreshCalendarChip() {
-  calendarChip.textContent = t(calendarConnected ? 'sync_calendar' : 'connect_calendar');
+function beginDraft(typeId, fields) {
+  if (state.draft) return; // finish the current new entity first
+  if (editingId()) return; // a click while editing just closes nothing — ignore
+  const type = entityTypeOf(ws, typeId);
+  if (!type) return;
+  state.draft = { ...newEntity(ws.id, type, fields), isDraft: true };
+  render();
+  openEditor(state.draft, { isNew: true });
 }
 
-getSetting('calendarConnected', false).then((connected) => {
-  calendarConnected = connected;
-  refreshCalendarChip();
-});
+function select(id) {
+  if (state.draft && id === state.draft.id) return;
+  if (editingId()) return;
+  const entity = state.entities.find((e) => e.id === id);
+  if (entity) openEditor(structuredClone(entity));
+}
 
-calendarChip.addEventListener('click', async () => {
-  calendarChip.disabled = true;
-  calendarChip.textContent = t('syncing');
-  try {
-    const { created, updated, removed } = await syncToCalendar();
-    calendarConnected = true;
-    alert(t('calendar_synced', { c: created, u: updated, r: removed }));
-  } catch (err) {
-    alert(t('sync_failed', { msg: err.message }));
-  } finally {
-    calendarChip.disabled = false;
-    refreshCalendarChip();
+function patchFields(id, patch) {
+  if (editingId() === id) {
+    updateEditingFields(patch); // panel edits the same object the draft points at
+    return;
   }
-});
+  const entity = state.entities.find((e) => e.id === id);
+  if (entity) {
+    Object.assign(entity.fields, patch);
+    saveEntity(entity).then(refresh);
+  }
+}
+
+// ---------- editor callbacks ----------
+
+async function onSave(entity) {
+  delete entity.isNew;
+  delete entity.isDraft;
+  state.draft = null;
+  await saveEntity(entity);
+  await refresh();
+}
+
+async function onDelete(entity) {
+  state.draft = null;
+  if (!entity.isNew) {
+    for (const cap of caps) await cap.onEntityDelete?.(entity);
+    await deleteEntity(entity.id);
+  }
+  await refresh();
+}
+
+function onCancel() {
+  state.draft = null;
+  render();
+}
 
 // ---------- settings ----------
 
@@ -135,8 +94,8 @@ const settingsForm = document.getElementById('settings-form');
 async function openSettings() {
   const f = settingsForm.elements;
   f.lang.value = currentLang();
-  f.monthlyBudget.value = (await getSetting('monthlyBudget', 0)) || '';
-  f.aboutMe.value = await getSetting('aboutMe', '');
+  f.monthlyBudget.value = (await getWorkspaceSetting(ws.id, 'monthlyBudget', 0)) || '';
+  f.aboutMe.value = await getWorkspaceSetting(ws.id, 'aboutMe', '');
   f.anthropicApiKey.value = '';
   const hasKey = Boolean(await getSetting('anthropicApiKey', ''));
   f.anthropicApiKey.placeholder = hasKey ? t('api_key_saved_ph') : 'sk-ant-…';
@@ -145,70 +104,97 @@ async function openSettings() {
 
 settingsForm.addEventListener('submit', async () => {
   const f = settingsForm.elements;
-  await setSetting('monthlyBudget', Number(f.monthlyBudget.value) || 0);
-  await setSetting('aboutMe', f.aboutMe.value.trim());
+  await setWorkspaceSetting(ws.id, 'monthlyBudget', Number(f.monthlyBudget.value) || 0);
+  await setWorkspaceSetting(ws.id, 'aboutMe', f.aboutMe.value.trim());
   const key = f.anthropicApiKey.value.trim();
   if (key) await setSetting('anthropicApiKey', key);
   await setLang(f.lang.value);
-  await updateBudgetChip();
+  render();
 });
 
 document.getElementById('settings-chip').addEventListener('click', openSettings);
-document.getElementById('budget-chip').addEventListener('click', openSettings);
 document.getElementById('settings-cancel').addEventListener('click', () => settingsDialog.close());
 
-document.addEventListener('langchange', () => {
-  refreshCalendarChip();
-  updateBudgetChip();
-  render(); // refresh marker tooltips
-});
+// ---------- status filters (from workspace config, not hardcoded) ----------
 
-document.getElementById('export-btn').addEventListener('click', exportBackup);
-document.getElementById('import-input').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  try {
-    const { added, updated, skipped } = await importBackup(file);
-    await refresh();
-    alert(t('import_done', { a: added, u: updated, s: skipped }));
-  } catch (err) {
-    alert(t('import_failed', { msg: err.message }));
-  }
-});
-
-for (const chip of document.querySelectorAll('.filter-chip')) {
-  chip.addEventListener('click', () => {
-    state.filter = chip.dataset.status;
-    document.querySelectorAll('.filter-chip').forEach((c) => c.classList.toggle('active', c === chip));
-    render();
-  });
+function buildFilters() {
+  const box = document.getElementById('filters');
+  box.textContent = '';
+  const make = (status, label) => {
+    const chip = document.createElement('button');
+    chip.className = 'chip filter-chip' + (state.filter === status ? ' active' : '');
+    chip.dataset.status = status;
+    chip.textContent = label;
+    chip.addEventListener('click', () => {
+      state.filter = status;
+      box.querySelectorAll('.filter-chip').forEach((c) => c.classList.toggle('active', c === chip));
+      render();
+    });
+    box.append(chip);
+  };
+  make('', t('all'));
+  for (const status of statusesOf(ws)) make(status.id, t(status.label));
 }
 
+// ---------- render loop: every capability is a projection ----------
+
 function render() {
-  const visible = state.filter ? state.stops.filter((s) => s.status === state.filter) : [...state.stops];
-  if (state.draft) visible.push(state.draft);
-  renderStops(map, visible, markerHandlers);
-  document.getElementById('empty-hint').hidden = state.stops.length > 0 || state.draft !== null;
+  const visible = state.filter ? state.entities.filter((e) => e.status === state.filter) : [...state.entities];
+  const snapshot = { entities: state.entities, visible, draft: state.draft, filter: state.filter };
+  for (const cap of caps) cap.render?.(snapshot);
+  document.getElementById('empty-hint').hidden = state.entities.length > 0 || state.draft !== null;
 }
 
 async function refresh() {
-  state.stops = await listStops();
+  state.entities = await listEntities(ws.id);
   render();
-  await updateBudgetChip();
 }
 
-db.open()
-  .then(initI18n)
-  .then(refresh)
-  .catch((err) => alert(`Local database failed to open: ${err.message}`));
+// ---------- boot ----------
+
+async function boot() {
+  await db.open();
+  await initI18n();
+  ws = await getActiveWorkspace();
+
+  const toolbarEl = document.querySelector('.toolbar');
+  const settingsChip = document.getElementById('settings-chip');
+  const toolbar = (el) => toolbarEl.insertBefore(el, settingsChip);
+
+  const ctx = {
+    ws,
+    config: ws.config,
+    t,
+    toolbar,
+    state: () => state,
+    registerEditorAction,
+    openSettings,
+    actions: { beginDraft, select, patchFields, refresh },
+  };
+
+  initPanel(ws, t, { onSave, onDelete, onCancel });
+  initWorkspaceUI(ws, t, toolbar);
+  buildFilters();
+
+  caps = enabledCapabilities(ws);
+  for (const cap of caps) await cap.mount?.(ctx);
+
+  document.addEventListener('langchange', () => {
+    buildFilters();
+    render();
+  });
+
+  await refresh();
+
+  // Ask the browser not to evict IndexedDB / caches under storage pressure —
+  // critical for offline-first workspaces on an installed PWA.
+  if (ws.config?.offline?.persistStorage !== false && navigator.storage?.persist) {
+    navigator.storage.persist();
+  }
+}
+
+boot().catch((err) => alert(`Brize failed to start: ${err.message}`));
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   navigator.serviceWorker.register('./sw.js');
-}
-
-// Ask the browser not to evict IndexedDB / caches under storage pressure —
-// critical for months on the road with an installed PWA.
-if (navigator.storage?.persist) {
-  navigator.storage.persist();
 }
