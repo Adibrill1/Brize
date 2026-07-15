@@ -8,6 +8,7 @@ import { updateBudgetChip } from './budget.js';
 import { exportBackup, importBackup } from './backup.js';
 import { syncToCalendar, queueEventDelete } from './calendar.js';
 import { draftOutreach } from './ai.js';
+import { geocode, reverseGeocode, PROVIDERS, detectSource } from './search.js';
 import { getSetting, setSetting } from './db.js';
 import { t, initI18n, setLang, currentLang } from './i18n.js';
 
@@ -57,6 +58,7 @@ initPanel({
     delete stop.isNew;
     delete stop.isDraft;
     state.draft = null;
+    stop.source = stop.listingUrl ? detectSource(stop.listingUrl) : '';
     await saveStop(stop);
     await refresh();
   },
@@ -162,6 +164,114 @@ document.addEventListener('langchange', () => {
   updateBudgetChip();
   render(); // refresh marker tooltips
 });
+
+// ---------- place search (geocoding) ----------
+
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+let searchTimer = null;
+
+function closeSearchResults() {
+  searchResults.hidden = true;
+  searchResults.replaceChildren();
+}
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const q = searchInput.value.trim();
+  if (q.length < 3) return closeSearchResults();
+  searchTimer = setTimeout(() => runSearch(q), 350);
+});
+
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (q.length >= 2) runSearch(q);
+  } else if (e.key === 'Escape') {
+    closeSearchResults();
+  }
+});
+
+async function runSearch(q) {
+  searchResults.hidden = false;
+  searchResults.replaceChildren(Object.assign(document.createElement('li'), { className: 'muted', textContent: t('searching') }));
+  try {
+    const results = await geocode(q);
+    if (!results.length) {
+      searchResults.replaceChildren(Object.assign(document.createElement('li'), { className: 'muted', textContent: t('no_results') }));
+      return;
+    }
+    searchResults.replaceChildren(
+      ...results.map((r) => {
+        const li = document.createElement('li');
+        li.textContent = r.label;
+        li.addEventListener('click', () => {
+          if (r.bbox) map.fitBounds([[r.bbox[0], r.bbox[1]], [r.bbox[2], r.bbox[3]]], { padding: 40, maxZoom: 13 });
+          else map.flyTo({ center: [r.lng, r.lat], zoom: 12 });
+          closeSearchResults();
+          searchInput.value = '';
+        });
+        return li;
+      }),
+    );
+  } catch (err) {
+    searchResults.replaceChildren(Object.assign(document.createElement('li'), { className: 'muted', textContent: t('search_failed', { msg: err.message }) }));
+  }
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.searchbar')) closeSearchResults();
+});
+
+// ---------- find stays here (provider deep links) ----------
+
+const staysDialog = document.getElementById('stays-dialog');
+
+document.getElementById('find-stays-btn').addEventListener('click', async () => {
+  const center = map.getCenter();
+  const placeEl = document.getElementById('stays-place');
+  placeEl.textContent = '…';
+  document.getElementById('stays-arrival').value = '';
+  document.getElementById('stays-departure').value = '';
+  staysDialog.showModal();
+
+  let place = '';
+  try {
+    place = await reverseGeocode(center.lat, center.lng);
+  } catch {
+    place = '';
+  }
+  placeEl.textContent = place || `${center.lat.toFixed(3)}, ${center.lng.toFixed(3)}`;
+  staysDialog.dataset.place = place;
+
+  renderProviders(center);
+});
+
+function renderProviders(center) {
+  const wrap = document.getElementById('stays-providers');
+  wrap.replaceChildren(
+    ...PROVIDERS.map((p) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'provider-btn';
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => {
+        const url = p.build({
+          place: staysDialog.dataset.place || `${center.lat},${center.lng}`,
+          lat: center.lat,
+          lng: center.lng,
+          arrival: document.getElementById('stays-arrival').value,
+          departure: document.getElementById('stays-departure').value,
+        });
+        window.open(url, '_blank', 'noopener');
+      });
+      return btn;
+    }),
+  );
+}
+
+document.getElementById('stays-close').addEventListener('click', () => staysDialog.close());
 
 document.getElementById('export-btn').addEventListener('click', exportBackup);
 document.getElementById('import-input').addEventListener('change', async (e) => {

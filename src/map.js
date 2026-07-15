@@ -80,9 +80,11 @@ export function renderStops(map, stops, { onSelect, onMove }) {
     }
 
     const el = marker.getElement();
-    el.textContent = TYPE_ICONS[stop.type] || '★';
+    const isCandidate = Boolean(stop.listingUrl) && stop.status === 'idea' && !stop.isDraft;
+    el.textContent = isCandidate ? '?' : TYPE_ICONS[stop.type] || '★';
     el.style.setProperty('--marker-color', STATUS_COLORS[stop.status] || STATUS_COLORS.idea);
     el.title = stop.name || t('unnamed');
     el.classList.toggle('draft', Boolean(stop.isDraft));
+    el.classList.toggle('candidate', isCandidate);
   }
 }
