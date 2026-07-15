@@ -28,6 +28,13 @@ Architecture rationale and roadmap: [`docs/ARCHITECTURE_REVIEW.md`](docs/ARCHITE
   (green / amber / red against a target you set — suggestions, never auto-booking).
 - JSON backup export, and import that *merges* (newer edit wins, nothing wiped).
 - Service worker: offline app shell + tile caching; persistent storage requested.
+- **Place search & find stays**: a search box geocodes any place (OpenStreetMap,
+  no key) and flies the map there. "Find stays here" opens Airbnb,
+  TrustedHousesitters, Booking, or Park4night in a new tab, pre-filtered to the
+  current map area and your dates — you browse on the official site and paste
+  candidates back as pins (no scraping; those sites have no public API and their
+  terms forbid automated access). A pasted listing link turns a stop into a
+  dashed "candidate" marker with a source badge.
 - **AI outreach drafts**: a "Draft outreach message" button on stays generates a
   personalized host message via the Claude API (`claude-opus-4-8`). Semi-automated
   by design — you review, edit, and send it yourself. Requires your own Anthropic

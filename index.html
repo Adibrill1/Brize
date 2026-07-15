@@ -11,6 +11,12 @@
 <body>
   <div id="map"></div>
 
+  <div class="searchbar">
+    <input id="search-input" type="search" data-i18n-ph="search_ph" autocomplete="off" aria-label="Search a place" />
+    <button id="find-stays-btn" class="chip" data-i18n="find_stays">Find stays here</button>
+    <ul id="search-results" hidden></ul>
+  </div>
+
   <div class="toolbar" role="toolbar" aria-label="App actions">
     <button id="budget-chip" class="chip">Budget: —</button>
     <button id="calendar-chip" class="chip" data-i18n="connect_calendar">Connect Calendar</button>
@@ -89,6 +95,11 @@
         <input name="parkingNotes" type="text" data-i18n-ph="parking_ph" autocomplete="off" />
       </label>
 
+      <label><span data-i18n="listing_url">Listing link</span>
+        <input name="listingUrl" type="url" data-i18n-ph="listing_ph" autocomplete="off" />
+      </label>
+      <a id="listing-open" class="listing-open" href="#" target="_blank" rel="noopener" data-i18n="open_listing" hidden>Open listing ↗</a>
+
       <label><span data-i18n="notes">Notes</span>
         <textarea name="notes" rows="3" data-i18n-ph="notes_ph"></textarea>
       </label>
@@ -116,6 +127,20 @@
       <button id="draft-copy" class="primary" data-i18n="copy">Copy</button>
       <span class="spacer"></span>
       <button id="draft-close" data-i18n="close">Close</button>
+    </footer>
+  </dialog>
+
+  <dialog id="stays-dialog">
+    <h2><span data-i18n="find_stays_title">Find stays near</span> <span id="stays-place"></span></h2>
+    <p class="dialog-hint" data-i18n="find_stays_hint"></p>
+    <div class="row">
+      <label><span data-i18n="arrival">Arrival</span><input id="stays-arrival" type="date" /></label>
+      <label><span data-i18n="departure">Departure</span><input id="stays-departure" type="date" /></label>
+    </div>
+    <div id="stays-providers" class="stays-providers"></div>
+    <footer>
+      <span class="spacer"></span>
+      <button id="stays-close" data-i18n="close">Close</button>
     </footer>
   </dialog>
 

@@ -25,6 +25,8 @@ export function newStop(lngLat) {
     currency: 'EUR',
     parkingNotes: '',
     notes: '',
+    listingUrl: '',
+    source: '',
     createdAt: now,
     updatedAt: now,
   };

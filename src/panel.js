@@ -3,7 +3,7 @@ import { t } from './i18n.js';
 const panel = () => document.getElementById('editor');
 const form = () => document.getElementById('editor-form');
 
-const FIELDS = ['name', 'type', 'status', 'stayType', 'costPerNight', 'arrival', 'departure', 'parkingNotes', 'notes'];
+const FIELDS = ['name', 'type', 'status', 'stayType', 'costPerNight', 'arrival', 'departure', 'parkingNotes', 'listingUrl', 'notes'];
 
 let current = null; // the stop object being edited
 let callbacks = {};
@@ -27,6 +27,8 @@ export function initPanel(cbs) {
   f.elements.type.addEventListener('change', () => {
     f.querySelectorAll('.stay-only').forEach((el) => (el.hidden = f.elements.type.value !== 'stay'));
   });
+
+  f.elements.listingUrl.addEventListener('input', () => updateListingLink(f.elements.listingUrl.value.trim()));
 
   document.getElementById('editor-close').addEventListener('click', cancel);
   document.getElementById('editor-cancel').addEventListener('click', cancel);
@@ -68,9 +70,20 @@ export function openEditor(stop, { isNew = false } = {}) {
     f.elements[name].value = stop[name] ?? '';
   }
   f.querySelectorAll('.stay-only').forEach((el) => (el.hidden = stop.type !== 'stay'));
+  updateListingLink(stop.listingUrl);
   setCoords(stop);
   panel().hidden = false;
   f.elements.name.focus();
+}
+
+function updateListingLink(url) {
+  const link = document.getElementById('listing-open');
+  if (url) {
+    link.href = url;
+    link.hidden = false;
+  } else {
+    link.hidden = true;
+  }
 }
 
 export function setCoords({ lat, lng }) {
