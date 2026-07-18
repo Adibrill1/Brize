@@ -143,11 +143,11 @@ body {
 .searchbar {
   position: fixed;
   top: max(10px, env(safe-area-inset-top));
-  left: 50px;
+  left: 10px;
   z-index: 11;
   display: flex;
   gap: 8px;
-  max-width: min(420px, calc(100vw - 120px));
+  max-width: min(420px, calc(100vw - 320px));
 }
 
 .searchbar input {
@@ -452,6 +452,38 @@ dialog footer button.primary {
     border-left: none;
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;
+  }
+
+  /* Two stacked full-width rows: search on top, actions below.
+     Anchored to both edges so LTR and RTL both fill the width. */
+  .searchbar {
+    left: 8px;
+    right: 8px;
+    max-width: none;
+  }
+
+  .toolbar {
+    left: 8px;
+    right: 8px;
+    top: calc(max(10px, env(safe-area-inset-top)) + 46px);
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar .chip {
+    flex: 0 0 auto;
+  }
+
+  /* keep the empty-map hint clear of the taller two-row header */
+  .empty-hint {
+    bottom: auto;
+    top: calc(max(10px, env(safe-area-inset-top)) + 96px);
   }
 }
 

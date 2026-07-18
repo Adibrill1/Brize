@@ -35,13 +35,15 @@ export function createMap(container, { onMapClick }) {
     zoom: 5,
   });
 
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+  // Bottom-left keeps the whole top edge free for the search + action bars,
+  // which matters most on narrow phone screens.
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
   map.addControl(
     new maplibregl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
     }),
-    'top-left',
+    'bottom-left',
   );
 
   map.on('click', (e) => onMapClick(e.lngLat));
