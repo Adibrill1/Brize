@@ -90,19 +90,33 @@ body {
   color: var(--accent);
 }
 
-.empty-hint {
+.add-fab {
   position: fixed;
-  bottom: 70px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 14px;
-  color: var(--text-dim);
-  z-index: 10;
-  pointer-events: none;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 56px);
+  z-index: 12;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ok);
+  color: #0d0f13;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-fab:hover {
+  filter: brightness(1.08);
+}
+
+.add-fab[hidden] {
+  display: none;
 }
 
 /* ---------- stop markers ---------- */
@@ -444,14 +458,49 @@ dialog footer button.primary {
 }
 
 @media (max-width: 560px) {
+  /* Bottom sheet, sized to its content up to a cap so it never fills the screen. */
   .editor {
     top: auto;
     left: 0;
     width: 100vw;
-    max-height: 75vh;
+    max-height: 82vh;
     border-left: none;
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;
+    padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  /* Tighter spacing so more of the form fits without scrolling. */
+  .editor header {
+    margin-bottom: 8px;
+  }
+
+  .editor label {
+    margin-bottom: 8px;
+  }
+
+  .editor .row {
+    gap: 8px;
+  }
+
+  .editor input,
+  .editor select,
+  .editor textarea {
+    padding: 8px 10px;
+    font-size: 16px; /* >=16px stops iOS Safari from auto-zooming on focus */
+  }
+
+  .ai-btn {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .editor footer {
+    margin-top: 10px;
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+    padding-top: 8px;
   }
 
   /* Two stacked full-width rows: search on top, actions below.
@@ -480,10 +529,23 @@ dialog footer button.primary {
     flex: 0 0 auto;
   }
 
-  /* keep the empty-map hint clear of the taller two-row header */
-  .empty-hint {
-    bottom: auto;
-    top: calc(max(10px, env(safe-area-inset-top)) + 96px);
+  /* Full-width dialogs sit as bottom sheets too, not oversized centered boxes. */
+  dialog {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 85vh;
+    margin: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+  }
+
+  dialog input,
+  dialog select,
+  dialog textarea {
+    font-size: 16px; /* prevent iOS focus zoom */
   }
 }
 
