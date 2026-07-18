@@ -18,14 +18,21 @@ const state = {
   filter: '', // '' = all statuses
 };
 
+function startNewStop(lngLat) {
+  if (state.draft) return; // finish the current new stop first
+  if (editingId()) return;
+  state.draft = { ...newStop(lngLat), isDraft: true };
+  render();
+  openEditor(state.draft, { isNew: true });
+}
+
 const map = createMap('map', {
-  onMapClick(lngLat) {
-    if (state.draft) return; // finish the current new stop first
-    if (editingId()) return; // a click while editing just closes nothing — ignore
-    state.draft = { ...newStop(lngLat), isDraft: true };
-    render();
-    openEditor(state.draft, { isNew: true });
-  },
+  onMapClick: startNewStop,
+});
+
+// Green + button: drop a new stop at the current map center (one-hand friendly).
+document.getElementById('add-fab').addEventListener('click', () => {
+  startNewStop(map.getCenter());
 });
 
 const markerHandlers = {
@@ -33,7 +40,10 @@ const markerHandlers = {
     if (state.draft && id === state.draft.id) return;
     if (editingId()) return;
     const stop = state.stops.find((s) => s.id === id);
-    if (stop) openEditor({ ...stop });
+    if (stop) {
+      openEditor({ ...stop });
+      render(); // hides the add button while the editor sheet is open
+    }
   },
   onMove(id, lngLat) {
     if (editingId() === id || (state.draft && state.draft.id === id)) {
@@ -299,7 +309,8 @@ function render() {
   const visible = state.filter ? state.stops.filter((s) => s.status === state.filter) : [...state.stops];
   if (state.draft) visible.push(state.draft);
   renderStops(map, visible, markerHandlers);
-  document.getElementById('empty-hint').hidden = state.stops.length > 0 || state.draft !== null;
+  // Hide the add button while placing/editing a stop so it doesn't overlap the sheet.
+  document.getElementById('add-fab').hidden = state.draft !== null || editingId() !== null;
 }
 
 async function refresh() {
