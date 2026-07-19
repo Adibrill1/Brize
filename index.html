@@ -18,6 +18,7 @@
   </div>
 
   <div class="toolbar" role="toolbar" aria-label="App actions">
+    <button id="agenda-chip" class="chip" data-i18n="agenda">Agenda</button>
     <button id="budget-chip" class="chip">Budget: —</button>
     <button id="calendar-chip" class="chip" data-i18n="connect_calendar">Connect Calendar</button>
     <button id="export-btn" class="chip" data-i18n="export">Export</button>
@@ -36,6 +37,19 @@
   </div>
 
   <button id="add-fab" class="add-fab" data-i18n-title="add_stop" title="Add a stop" aria-label="Add a stop">+</button>
+
+  <aside id="agenda-panel" class="agenda-panel" hidden aria-label="Agenda">
+    <header>
+      <h2 data-i18n="agenda">Agenda</h2>
+      <button type="button" id="agenda-close" class="icon-btn" aria-label="Close">✕</button>
+    </header>
+    <div class="agenda-toggle" role="group">
+      <button type="button" id="agenda-timeline-btn" class="active" data-i18n="view_timeline">Timeline</button>
+      <button type="button" id="agenda-list-btn" data-i18n="view_list">List</button>
+    </div>
+    <p id="agenda-empty" class="agenda-empty" hidden></p>
+    <ul id="agenda-list" class="agenda-list"></ul>
+  </aside>
 
   <aside id="editor" class="editor" hidden aria-label="Stop editor">
     <form id="editor-form">

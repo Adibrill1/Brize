@@ -243,6 +243,141 @@ body {
   color: var(--accent);
 }
 
+/* ---------- agenda side panel ---------- */
+
+.agenda-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(360px, 100vw);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  z-index: 20;
+  overflow-y: auto;
+  padding: 16px;
+  box-shadow: 8px 0 30px rgb(0 0 0 / 0.4);
+}
+
+:root[dir='rtl'] .agenda-panel {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 30px rgb(0 0 0 / 0.4);
+}
+
+.agenda-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.agenda-panel h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.agenda-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  margin-bottom: 14px;
+}
+
+.agenda-toggle button {
+  flex: 1;
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  border-radius: 999px;
+  padding: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.agenda-toggle button.active {
+  background: var(--accent);
+  color: #0d0f13;
+  font-weight: 600;
+}
+
+.agenda-empty {
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 2px;
+}
+
+.agenda-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.agenda-month {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 14px 2px 6px;
+}
+
+.agenda-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.agenda-item:hover,
+.agenda-item:focus-visible {
+  background: var(--surface-2);
+  outline: none;
+}
+
+.agenda-dot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+}
+
+.agenda-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.agenda-title {
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agenda-meta {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.agenda-badge {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 /* ---------- editor panel ---------- */
 
 .editor {
@@ -527,6 +662,10 @@ dialog footer button.primary {
 
   .toolbar .chip {
     flex: 0 0 auto;
+  }
+
+  .agenda-panel {
+    width: 100vw;
   }
 
   /* Full-width dialogs sit as bottom sheets too, not oversized centered boxes. */

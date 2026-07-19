@@ -8,6 +8,7 @@ import { updateBudgetChip } from './budget.js';
 import { exportBackup, importBackup } from './backup.js';
 import { syncToCalendar, queueEventDelete } from './calendar.js';
 import { draftOutreach } from './ai.js';
+import { initAgenda, renderAgenda, agendaOpen } from './agenda.js';
 import { geocode, reverseGeocode, PROVIDERS, detectSource } from './search.js';
 import { getSetting, setSetting } from './db.js';
 import { t, initI18n, setLang, currentLang } from './i18n.js';
@@ -33,6 +34,18 @@ const map = createMap('map', {
 // Green + button: drop a new stop at the current map center (one-hand friendly).
 document.getElementById('add-fab').addEventListener('click', () => {
   startNewStop(map.getCenter());
+});
+
+// Agenda side panel: open a stop from the list into the editor, and pan to it.
+initAgenda({
+  onOpen(id) {
+    if (editingId()) return;
+    const stop = state.stops.find((s) => s.id === id);
+    if (!stop) return;
+    map.flyTo({ center: [stop.lng, stop.lat], zoom: Math.max(map.getZoom(), 9) });
+    openEditor({ ...stop });
+    render();
+  },
 });
 
 const markerHandlers = {
@@ -173,6 +186,7 @@ document.addEventListener('langchange', () => {
   refreshCalendarChip();
   updateBudgetChip();
   render(); // refresh marker tooltips
+  if (agendaOpen()) renderAgenda();
 });
 
 // ---------- place search (geocoding) ----------
@@ -316,6 +330,7 @@ function render() {
 async function refresh() {
   state.stops = await listStops();
   render();
+  if (agendaOpen()) await renderAgenda();
   await updateBudgetChip();
 }
 
