@@ -77,6 +77,13 @@ const STRINGS = {
     open_listing: 'Open listing ↗',
     source: 'Source',
     candidate: 'Candidate',
+    agenda: '📅 Agenda',
+    view_timeline: 'Timeline',
+    view_list: 'List',
+    agenda_empty: 'No stops with dates yet — set arrival dates to see them here.',
+    list_empty: 'No stops yet — tap + to add one.',
+    nights_n: '{n} nights',
+    per_night_short: 'night',
   },
   he: {
     budget: 'תקציב',
@@ -154,6 +161,13 @@ const STRINGS = {
     open_listing: 'פתיחת הליסטינג ↗',
     source: 'מקור',
     candidate: 'מועמדת',
+    agenda: '📅 יומן',
+    view_timeline: 'ציר זמן',
+    view_list: 'רשימה',
+    agenda_empty: 'אין עדיין עצירות עם תאריכים — הגדירו תאריך הגעה כדי לראותן כאן.',
+    list_empty: 'אין עדיין עצירות — הקישו על + כדי להוסיף.',
+    nights_n: '{n} לילות',
+    per_night_short: 'לילה',
   },
 };
 
